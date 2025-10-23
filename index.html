@@ -1702,12 +1702,19 @@
         // Load WMA Age Grading Data
         async function loadAgeGradingData() {
             try {
-                const response = await fetch('https://filmmyrun.co.uk/wp-content/assets/agegradingfactors.json');
-                ageGradingData = await response.json();
+                // Try to load from local file first (for GitHub Pages hosting)
+                const response = await fetch('agegradingfactors.json');
+                if (!response.ok) {
+                    // Fallback to remote URL
+                    const fallbackResponse = await fetch('https://filmmyrun.co.uk/wp-content/assets/agegradingfactors.json');
+                    ageGradingData = await fallbackResponse.json();
+                } else {
+                    ageGradingData = await response.json();
+                }
                 console.log('WMA Age Grading Data loaded successfully');
             } catch (error) {
                 console.error('Error loading age grading data:', error);
-                alert('Unable to load age grading data. Please check your internet connection.');
+                alert('Unable to load age grading data. Please ensure agegradingfactors.json is in the same directory as this HTML file.');
             }
         }
 
