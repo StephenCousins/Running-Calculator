@@ -1693,8 +1693,11 @@
                 { name: '100 Miles', km: 160.934, isUltra: true }
             ];
 
-            const baseDistance = race2Distance;
-            const baseTime = race2TimeSeconds;
+            // Use the shorter race as the base for backward predictions, longer race for forward predictions
+            const baseDistance1 = race1Distance;
+            const baseTime1 = race1TimeSeconds;
+            const baseDistance2 = race2Distance;
+            const baseTime2 = race2TimeSeconds;
 
             let resultsHTML = `
                 <div class="calibration-box">
@@ -1721,12 +1724,35 @@
                     </div>
                 </div>
 
-                <h3 style="color: #667eea; margin-bottom: 20px;">🎯 Predicted Race Times</h3>
+                <h3 style="color: #FF9900; margin-bottom: 20px;">🎯 Predicted Race Times</h3>
                 <div class="predictions-grid">
             `;
 
             distances.forEach(distance => {
                 let exponent = personalExponent;
+                let baseDistance, baseTime;
+                
+                // Choose which known race to base the prediction on
+                if (distance.km < baseDistance1) {
+                    // For distances shorter than race1, use race1 as base
+                    baseDistance = baseDistance1;
+                    baseTime = baseTime1;
+                } else if (distance.km >= baseDistance1 && distance.km <= baseDistance2) {
+                    // For distances between race1 and race2, use the closer one
+                    const dist1Diff = Math.abs(distance.km - baseDistance1);
+                    const dist2Diff = Math.abs(distance.km - baseDistance2);
+                    if (dist1Diff < dist2Diff) {
+                        baseDistance = baseDistance1;
+                        baseTime = baseTime1;
+                    } else {
+                        baseDistance = baseDistance2;
+                        baseTime = baseTime2;
+                    }
+                } else {
+                    // For distances longer than race2, use race2 as base
+                    baseDistance = baseDistance2;
+                    baseTime = baseTime2;
+                }
                 
                 if (distance.isUltra) {
                     const ultraMultiplier = Math.pow(distance.km / 42.195, 0.15);
@@ -1753,7 +1779,17 @@
                 exponent *= ageAdjustment;
                 exponent *= bmiAdjustment;
 
-                const predictedSeconds = baseTime * Math.pow(distance.km / baseDistance, exponent);
+                let predictedSeconds = baseTime * Math.pow(distance.km / baseDistance, exponent);
+                
+                // CRITICAL FIX: Don't predict faster than known times for shorter distances
+                if (distance.km <= race1Distance && predictedSeconds < race1TimeSeconds) {
+                    predictedSeconds = race1TimeSeconds;
+                }
+                if (distance.km <= race2Distance && distance.km > race1Distance && predictedSeconds < race2TimeSeconds) {
+                    // For intermediate distances, use interpolation instead of prediction
+                    const ratio = (distance.km - race1Distance) / (race2Distance - race1Distance);
+                    predictedSeconds = race1TimeSeconds + (ratio * (race2TimeSeconds - race1TimeSeconds));
+                }
                 
                 const distanceRatio = Math.abs(Math.log(distance.km / baseDistance));
                 const confidence = Math.max(50, 100 - (distanceRatio * 30));
@@ -1774,11 +1810,11 @@
 
             resultsHTML += `</div>`;
 
-            if (baseDistance >= 42.195) {
+            if (baseDistance2 >= 42.195) {
                 resultsHTML += generateUltraGuidance(personalExponent, gender);
             }
 
-            resultsHTML += generatePacingStrategy(baseDistance, baseTime);
+            resultsHTML += generatePacingStrategy(baseDistance2, baseTime2);
 
             document.getElementById('race-result').innerHTML = resultsHTML;
             document.getElementById('race-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
