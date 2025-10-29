@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f5f5;
             min-height: 100vh;
             padding: 20px;
         }
@@ -25,26 +25,146 @@
 
         .header {
             text-align: center;
-            color: white;
+            color: #333;
             margin-bottom: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .header h1 {
             font-size: 2.5em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #FF9900;
+            text-shadow: none;
         }
 
         .header p {
             font-size: 1.2em;
-            opacity: 0.9;
+            color: #666;
+        }
+
+        /* Compact header bar - always visible */
+        .calculator-header-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: linear-gradient(135deg, #FF9900 0%, #FF8800 100%);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        .active-calculator-name {
+            color: white;
+            font-size: 1.2em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .change-calculator-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .change-calculator-btn:hover {
+            background: white;
+            color: #FF9900;
+            transform: scale(1.05);
+        }
+
+        /* Slide-out drawer */
+        .calculator-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .calculator-drawer.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .drawer-content {
+            background: white;
+            width: 90%;
+            max-width: 900px;
+            margin: auto;
+            border-radius: 20px;
+            padding: 30px;
+            max-height: 85vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .calculator-drawer.active .drawer-content {
+            transform: scale(1);
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .drawer-header h2 {
+            color: #FF9900;
+            margin: 0;
+        }
+
+        .close-drawer-btn {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            margin: 0;
+        }
+
+        .close-drawer-btn:hover {
+            background: #FFF8F0;
+            color: #FF9900;
         }
 
         .calculator-selector {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
         }
 
         .calculator-card {
@@ -53,22 +173,23 @@
             padding: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             border: 3px solid transparent;
         }
 
         .calculator-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 25px rgba(255,153,0,0.2);
+            border-color: #FF9900;
         }
 
         .calculator-card.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-color: #FF9900;
+            background: linear-gradient(135deg, #FFF8F0 0%, #FFE8CC 100%);
         }
 
         .calculator-card h3 {
-            color: #667eea;
+            color: #FF9900;
             margin-bottom: 10px;
             font-size: 1.3em;
         }
@@ -90,6 +211,7 @@
             padding: 30px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             display: none;
+            scroll-margin-top: 20px;
         }
 
         .calculator-content.active {
@@ -133,7 +255,7 @@
         input[type="number"]:focus,
         select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #FF9900;
         }
 
         .time-inputs {
@@ -148,7 +270,7 @@
         button {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #FF9900 0%, #FF8800 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -170,13 +292,13 @@
         .result {
             margin-top: 25px;
             padding: 20px;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #FFF8F0 0%, #FFE8CC 100%);
             border-radius: 10px;
-            border-left: 5px solid #667eea;
+            border-left: 5px solid #FF9900;
         }
 
         .result h3 {
-            color: #667eea;
+            color: #FF9900;
             margin-bottom: 15px;
         }
 
@@ -188,12 +310,12 @@
         }
 
         .result-item strong {
-            color: #667eea;
+            color: #FF9900;
         }
 
         .info-box {
-            background: #e8f4f8;
-            border-left: 4px solid #3498db;
+            background: #FFF8F0;
+            border-left: 4px solid #FF9900;
             padding: 15px;
             margin: 20px 0;
             border-radius: 5px;
@@ -219,7 +341,7 @@
         }
 
         table th {
-            background: #667eea;
+            background: #FF9900;
             color: white;
             font-weight: 600;
         }
@@ -231,7 +353,7 @@
         .toggle-section {
             margin-top: 15px;
             padding: 12px;
-            background: #667eea;
+            background: #FF9900;
             color: white;
             border-radius: 8px;
             cursor: pointer;
@@ -241,7 +363,7 @@
         }
 
         .toggle-section:hover {
-            background: #5568d3;
+            background: #FF8800;
             transform: translateY(-2px);
         }
 
@@ -292,13 +414,13 @@
         }
 
         .mode-button:hover {
-            border-color: #667eea;
+            border-color: #FF9900;
         }
 
         .mode-button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #FF9900 0%, #FF8800 100%);
             color: white;
-            border-color: #667eea;
+            border-color: #FF9900;
         }
 
         .race-input-group {
@@ -310,21 +432,21 @@
         }
 
         .race-input-group h4 {
-            color: #667eea;
+            color: #FF9900;
             margin-bottom: 15px;
             font-size: 1.1em;
         }
 
         .calibration-box {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            background: linear-gradient(135deg, #FFF8F0 0%, #FFE8CC 100%);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 25px;
-            border-left: 5px solid #2196F3;
+            border-left: 5px solid #FF9900;
         }
 
         .calibration-box h3 {
-            color: #1976D2;
+            color: #FF8800;
             margin-bottom: 10px;
         }
 
@@ -332,7 +454,7 @@
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(33, 150, 243, 0.2);
+            border-bottom: 1px solid rgba(255,153,0,0.2);
         }
 
         .calibration-stat:last-child {
@@ -340,7 +462,7 @@
         }
 
         .calibration-stat strong {
-            color: #1565C0;
+            color: #FF9900;
         }
 
         .predictions-grid {
@@ -367,13 +489,13 @@
             left: 0;
             width: 100%;
             height: 4px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, #FF9900 0%, #FF8800 100%);
         }
 
         .prediction-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border-color: #667eea;
+            box-shadow: 0 10px 25px rgba(255,153,0,0.15);
+            border-color: #FF9900;
         }
 
         .prediction-card.ultra {
@@ -388,7 +510,7 @@
         .prediction-distance {
             font-size: 1.3em;
             font-weight: bold;
-            color: #667eea;
+            color: #FF9900;
             margin-bottom: 10px;
         }
 
@@ -476,7 +598,7 @@
         }
 
         .pacing-guide h3 {
-            color: #667eea;
+            color: #FF9900;
             margin-bottom: 15px;
         }
 
@@ -497,7 +619,7 @@
         }
 
         .pace-value {
-            color: #667eea;
+            color: #FF9900;
             font-weight: bold;
         }
 
@@ -519,7 +641,34 @@
 
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 2em;
+                font-size: 1.5em;
+            }
+
+            .header p {
+                font-size: 0.9em;
+            }
+
+            .calculator-header-bar {
+                padding: 12px 15px;
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .active-calculator-name {
+                font-size: 1em;
+                justify-content: center;
+            }
+
+            .change-calculator-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .drawer-content {
+                width: 95%;
+                padding: 20px;
+                max-height: 90vh;
             }
 
             .calculator-selector {
@@ -547,41 +696,62 @@
             <p>7 Professional Tools for Runners - VO₂ Max, Pace, Ultra Race Prediction, Age Grading, Elevation, Training Zones & Nutrition</p>
         </div>
 
-        <div class="calculator-selector">
-            <div class="calculator-card active" onclick="showCalculator('vo2max')">
-                <div class="calculator-icon">💨</div>
-                <h3>VO₂ Max Calculator</h3>
-                <p>Estimate your aerobic capacity using VDOT, FMR, or Cooper tests</p>
+        <!-- Compact header bar showing active calculator -->
+        <div class="calculator-header-bar">
+            <div class="active-calculator-name">
+                <span id="active-calc-icon">💨</span>
+                <span id="active-calc-name">VO₂ Max Calculator</span>
             </div>
-            <div class="calculator-card" onclick="showCalculator('pace')">
-                <div class="calculator-icon">⏱️</div>
-                <h3>Pace Calculator</h3>
-                <p>Calculate your running pace, speed, and splits for any distance</p>
-            </div>
-            <div class="calculator-card" onclick="showCalculator('race')">
-                <div class="calculator-icon">🎯</div>
-                <h3>Race Time Predictor</h3>
-                <p>Ultra-accurate predictions from 5K to 100 miles with personalized calibration</p>
-            </div>
-            <div class="calculator-card" onclick="showCalculator('agegrading')">
-                <div class="calculator-icon">📊</div>
-                <h3>Age Grading Calculator</h3>
-                <p>Calculate age-graded performance based on WMA standards</p>
-            </div>
-            <div class="calculator-card" onclick="showCalculator('elevation')">
-                <div class="calculator-icon">⛰️</div>
-                <h3>Elevation Adjustment</h3>
-                <p>Adjust race predictions for elevation gain and mountainous terrain</p>
-            </div>
-            <div class="calculator-card" onclick="showCalculator('zones')">
-                <div class="calculator-icon">🎯</div>
-                <h3>Training Zones</h3>
-                <p>Calculate heart rate and pace zones for optimal training</p>
-            </div>
-            <div class="calculator-card" onclick="showCalculator('nutrition')">
-                <div class="calculator-icon">🍌</div>
-                <h3>Nutrition Calculator</h3>
-                <p>Calculate calories, carbs, and hydration needs for your runs</p>
+            <button class="change-calculator-btn" onclick="openDrawer()">
+                <span>Change Tool</span>
+                <span>⚡</span>
+            </button>
+        </div>
+
+        <!-- Slide-out drawer with all calculators -->
+        <div class="calculator-drawer" id="calculator-drawer" onclick="closeDrawerOnBackground(event)">
+            <div class="drawer-content">
+                <div class="drawer-header">
+                    <h2>Choose Your Calculator</h2>
+                    <button class="close-drawer-btn" onclick="closeDrawer()">×</button>
+                </div>
+                <div class="calculator-selector">
+                    <div class="calculator-card active" data-calc="vo2max" data-icon="💨" data-name="VO₂ Max Calculator" onclick="selectCalculator('vo2max', '💨', 'VO₂ Max Calculator')">
+                        <div class="calculator-icon">💨</div>
+                        <h3>VO₂ Max Calculator</h3>
+                        <p>Estimate your aerobic capacity using VDOT, FMR, or Cooper tests</p>
+                    </div>
+                    <div class="calculator-card" data-calc="pace" data-icon="⏱️" data-name="Pace Calculator" onclick="selectCalculator('pace', '⏱️', 'Pace Calculator')">
+                        <div class="calculator-icon">⏱️</div>
+                        <h3>Pace Calculator</h3>
+                        <p>Calculate your running pace, speed, and splits for any distance</p>
+                    </div>
+                    <div class="calculator-card" data-calc="race" data-icon="🎯" data-name="Race Time Predictor" onclick="selectCalculator('race', '🎯', 'Race Time Predictor')">
+                        <div class="calculator-icon">🎯</div>
+                        <h3>Race Time Predictor</h3>
+                        <p>Ultra-accurate predictions from 5K to 100 miles with personalized calibration</p>
+                    </div>
+                    <div class="calculator-card" data-calc="agegrading" data-icon="📊" data-name="Age Grading Calculator" onclick="selectCalculator('agegrading', '📊', 'Age Grading Calculator')">
+                        <div class="calculator-icon">📊</div>
+                        <h3>Age Grading Calculator</h3>
+                        <p>Calculate age-graded performance based on WMA standards</p>
+                    </div>
+                    <div class="calculator-card" data-calc="elevation" data-icon="⛰️" data-name="Elevation Adjustment" onclick="selectCalculator('elevation', '⛰️', 'Elevation Adjustment')">
+                        <div class="calculator-icon">⛰️</div>
+                        <h3>Elevation Adjustment</h3>
+                        <p>Adjust race predictions for elevation gain and mountainous terrain</p>
+                    </div>
+                    <div class="calculator-card" data-calc="zones" data-icon="🎯" data-name="Training Zones" onclick="selectCalculator('zones', '🎯', 'Training Zones')">
+                        <div class="calculator-icon">🎯</div>
+                        <h3>Training Zones</h3>
+                        <p>Calculate heart rate and pace zones for optimal training</p>
+                    </div>
+                    <div class="calculator-card" data-calc="nutrition" data-icon="🍌" data-name="Nutrition Calculator" onclick="selectCalculator('nutrition', '🍌', 'Nutrition Calculator')">
+                        <div class="calculator-icon">🍌</div>
+                        <h3>Nutrition Calculator</h3>
+                        <p>Calculate calories, carbs, and hydration needs for your runs</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1074,8 +1244,32 @@
     </div>
 
     <script>
-        // Navigation Functions
-        function showCalculator(calcType) {
+        // Drawer Functions
+        function openDrawer() {
+            document.getElementById('calculator-drawer').classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeDrawer() {
+            document.getElementById('calculator-drawer').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function closeDrawerOnBackground(event) {
+            if (event.target.id === 'calculator-drawer') {
+                closeDrawer();
+            }
+        }
+
+        // Close drawer on ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeDrawer();
+            }
+        });
+
+        function selectCalculator(calcType, icon, name) {
+            // Update active calculator
             document.querySelectorAll('.calculator-content').forEach(calc => {
                 calc.classList.remove('active');
             });
@@ -1084,8 +1278,31 @@
                 card.classList.remove('active');
             });
             
+            // Show selected calculator
             document.getElementById(calcType + '-calculator').classList.add('active');
             event.currentTarget.classList.add('active');
+            
+            // Update header bar
+            document.getElementById('active-calc-icon').textContent = icon;
+            document.getElementById('active-calc-name').textContent = name;
+            
+            // Close drawer
+            closeDrawer();
+            
+            // Scroll to top of calculator content smoothly
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+        }
+
+        // Legacy function for compatibility
+        function showCalculator(calcType) {
+            const card = document.querySelector(`[data-calc="${calcType}"]`);
+            if (card) {
+                const icon = card.dataset.icon;
+                const name = card.dataset.name;
+                selectCalculator(calcType, icon, name);
+            }
         }
 
         function switchRaceMode(mode) {
@@ -1476,8 +1693,11 @@
                 { name: '100 Miles', km: 160.934, isUltra: true }
             ];
 
-            const baseDistance = race2Distance;
-            const baseTime = race2TimeSeconds;
+            // Use the shorter race as the base for backward predictions, longer race for forward predictions
+            const baseDistance1 = race1Distance;
+            const baseTime1 = race1TimeSeconds;
+            const baseDistance2 = race2Distance;
+            const baseTime2 = race2TimeSeconds;
 
             let resultsHTML = `
                 <div class="calibration-box">
@@ -1504,12 +1724,35 @@
                     </div>
                 </div>
 
-                <h3 style="color: #667eea; margin-bottom: 20px;">🎯 Predicted Race Times</h3>
+                <h3 style="color: #FF9900; margin-bottom: 20px;">🎯 Predicted Race Times</h3>
                 <div class="predictions-grid">
             `;
 
             distances.forEach(distance => {
                 let exponent = personalExponent;
+                let baseDistance, baseTime;
+                
+                // Choose which known race to base the prediction on
+                if (distance.km < baseDistance1) {
+                    // For distances shorter than race1, use race1 as base
+                    baseDistance = baseDistance1;
+                    baseTime = baseTime1;
+                } else if (distance.km >= baseDistance1 && distance.km <= baseDistance2) {
+                    // For distances between race1 and race2, use the closer one
+                    const dist1Diff = Math.abs(distance.km - baseDistance1);
+                    const dist2Diff = Math.abs(distance.km - baseDistance2);
+                    if (dist1Diff < dist2Diff) {
+                        baseDistance = baseDistance1;
+                        baseTime = baseTime1;
+                    } else {
+                        baseDistance = baseDistance2;
+                        baseTime = baseTime2;
+                    }
+                } else {
+                    // For distances longer than race2, use race2 as base
+                    baseDistance = baseDistance2;
+                    baseTime = baseTime2;
+                }
                 
                 if (distance.isUltra) {
                     const ultraMultiplier = Math.pow(distance.km / 42.195, 0.15);
@@ -1536,7 +1779,17 @@
                 exponent *= ageAdjustment;
                 exponent *= bmiAdjustment;
 
-                const predictedSeconds = baseTime * Math.pow(distance.km / baseDistance, exponent);
+                let predictedSeconds = baseTime * Math.pow(distance.km / baseDistance, exponent);
+                
+                // CRITICAL FIX: Don't predict faster than known times for shorter distances
+                if (distance.km <= race1Distance && predictedSeconds < race1TimeSeconds) {
+                    predictedSeconds = race1TimeSeconds;
+                }
+                if (distance.km <= race2Distance && distance.km > race1Distance && predictedSeconds < race2TimeSeconds) {
+                    // For intermediate distances, use interpolation instead of prediction
+                    const ratio = (distance.km - race1Distance) / (race2Distance - race1Distance);
+                    predictedSeconds = race1TimeSeconds + (ratio * (race2TimeSeconds - race1TimeSeconds));
+                }
                 
                 const distanceRatio = Math.abs(Math.log(distance.km / baseDistance));
                 const confidence = Math.max(50, 100 - (distanceRatio * 30));
@@ -1557,11 +1810,11 @@
 
             resultsHTML += `</div>`;
 
-            if (baseDistance >= 42.195) {
+            if (baseDistance2 >= 42.195) {
                 resultsHTML += generateUltraGuidance(personalExponent, gender);
             }
 
-            resultsHTML += generatePacingStrategy(baseDistance, baseTime);
+            resultsHTML += generatePacingStrategy(baseDistance2, baseTime2);
 
             document.getElementById('race-result').innerHTML = resultsHTML;
             document.getElementById('race-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
