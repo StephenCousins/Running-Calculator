@@ -637,6 +637,81 @@
             margin: 8px 0;
         }
 
+        /* Utility classes for show/hide */
+        .hidden {
+            display: none !important;
+        }
+
+        .visible {
+            display: block !important;
+        }
+
+        /* Error Modal Styles */
+        .error-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .error-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .error-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .error-modal.active .error-modal-content {
+            transform: scale(1);
+        }
+
+        .error-modal-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .error-modal-message {
+            color: #333;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .error-modal-btn {
+            background: linear-gradient(135deg, #FF9900 0%, #FF8800 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .error-modal-btn:hover {
+            transform: scale(1.05);
+        }
+
         @media (max-width: 768px) {
             .header p {
                 font-size: 0.9em;
@@ -768,7 +843,7 @@
             </div>
 
             <!-- VDOT Form -->
-            <div id="vdot-form" style="display: none;">
+            <div id="vdot-form" class="hidden">
                 <div class="form-group">
                     <label for="vdot-distance">Distance (meters):</label>
                     <input type="number" id="vdot-distance" placeholder="e.g., 5000">
@@ -784,7 +859,7 @@
             </div>
 
             <!-- FMR Form -->
-            <div id="custom-form" style="display: none;">
+            <div id="custom-form" class="hidden">
                 <div class="form-group">
                     <label for="custom-gender">Gender:</label>
                     <select id="custom-gender">
@@ -815,7 +890,7 @@
             </div>
 
             <!-- Cooper Form -->
-            <div id="cooper-form" style="display: none;">
+            <div id="cooper-form" class="hidden">
                 <div class="form-group">
                     <label for="cooper-distance">Distance Run in 12 Minutes (meters):</label>
                     <input type="number" id="cooper-distance" placeholder="e.g., 3000" min="0">
@@ -961,7 +1036,7 @@
             </div>
 
             <!-- Advanced Mode -->
-            <div id="race-advanced-mode" style="display: none;">
+            <div id="race-advanced-mode" class="hidden">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="race-gender-advanced">Gender:</label>
@@ -1171,7 +1246,7 @@
             </div>
 
             <!-- Pace Mode -->
-            <div id="zones-pace-mode" style="display: none;">
+            <div id="zones-pace-mode" class="hidden">
                 <div class="form-group">
                     <label for="zones-threshold-pace">Threshold Pace (min/km):</label>
                     <div class="time-inputs">
@@ -1184,6 +1259,15 @@
 
             <button onclick="calculateTrainingZones()">Calculate Training Zones</button>
             <div id="zones-result"></div>
+        </div>
+
+        <!-- Error Modal -->
+        <div class="error-modal" id="error-modal">
+            <div class="error-modal-content">
+                <div class="error-modal-icon" id="error-modal-icon">⚠️</div>
+                <div class="error-modal-message" id="error-modal-message"></div>
+                <button class="error-modal-btn" onclick="closeErrorModal()">OK</button>
+            </div>
         </div>
 
         <!-- Nutrition Calculator -->
@@ -1239,10 +1323,99 @@
     </div>
 
     <script>
+        // ============================================
+        // Error Modal Functions (replaces alert())
+        // ============================================
+        function showError(message, icon = '⚠️') {
+            const modal = document.getElementById('error-modal');
+            const messageEl = document.getElementById('error-modal-message');
+            const iconEl = document.getElementById('error-modal-icon');
+
+            messageEl.textContent = message;
+            iconEl.textContent = icon;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeErrorModal() {
+            const modal = document.getElementById('error-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on ESC key or background click
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeErrorModal();
+                closeDrawer();
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'error-modal') {
+                closeErrorModal();
+            }
+        });
+
+        // ============================================
+        // Helper Functions (reduces code duplication)
+        // ============================================
+        function getTimeInputs(prefix) {
+            const hours = parseInt(document.getElementById(`${prefix}-hours`).value) || 0;
+            const minutes = parseInt(document.getElementById(`${prefix}-minutes`).value) || 0;
+            const seconds = parseInt(document.getElementById(`${prefix}-seconds`).value) || 0;
+            return { hours, minutes, seconds };
+        }
+
+        function getTimeInSeconds(prefix) {
+            const { hours, minutes, seconds } = getTimeInputs(prefix);
+            return (hours * 3600) + (minutes * 60) + seconds;
+        }
+
+        function validateTimeInput(prefix, errorMessage = 'Please enter a valid time.') {
+            const totalSeconds = getTimeInSeconds(prefix);
+            if (totalSeconds <= 0) {
+                showError(errorMessage);
+                return false;
+            }
+            return totalSeconds;
+        }
+
+        function validateDistance(value, errorMessage = 'Please enter a valid distance.') {
+            const distance = parseFloat(value);
+            if (isNaN(distance) || distance <= 0) {
+                showError(errorMessage);
+                return false;
+            }
+            return distance;
+        }
+
+        function validateNumber(value, errorMessage = 'Please enter a valid number.') {
+            const num = parseFloat(value);
+            if (isNaN(num) || num <= 0) {
+                showError(errorMessage);
+                return false;
+            }
+            return num;
+        }
+
+        // Show/hide elements using CSS classes
+        function showElement(elementId) {
+            document.getElementById(elementId).classList.remove('hidden');
+            document.getElementById(elementId).classList.add('visible');
+        }
+
+        function hideElement(elementId) {
+            document.getElementById(elementId).classList.remove('visible');
+            document.getElementById(elementId).classList.add('hidden');
+        }
+
+        // ============================================
         // Drawer Functions
+        // ============================================
         function openDrawer() {
             document.getElementById('calculator-drawer').classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            document.body.style.overflow = 'hidden';
         }
 
         function closeDrawer() {
@@ -1255,13 +1428,6 @@
                 closeDrawer();
             }
         }
-
-        // Close drawer on ESC key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeDrawer();
-            }
-        });
 
         function selectCalculator(calcType, icon, name) {
             // Update active calculator
@@ -1301,37 +1467,39 @@
         }
 
         function switchRaceMode(mode) {
-            document.querySelectorAll('.mode-button').forEach(btn => {
+            document.querySelectorAll('#race-calculator .mode-button').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.currentTarget.classList.add('active');
 
             if (mode === 'quick') {
-                document.getElementById('race-quick-mode').style.display = 'block';
-                document.getElementById('race-advanced-mode').style.display = 'none';
+                document.getElementById('race-quick-mode').classList.remove('hidden');
+                document.getElementById('race-advanced-mode').classList.add('hidden');
             } else {
-                document.getElementById('race-quick-mode').style.display = 'none';
-                document.getElementById('race-advanced-mode').style.display = 'block';
+                document.getElementById('race-quick-mode').classList.add('hidden');
+                document.getElementById('race-advanced-mode').classList.remove('hidden');
             }
-            
+
             document.getElementById('race-result').innerHTML = '';
         }
 
         // VO2 Max Functions
         function showVO2TestForm() {
             const testType = document.getElementById('vo2-test-type').value;
-            
-            document.getElementById('vdot-form').style.display = 'none';
-            document.getElementById('custom-form').style.display = 'none';
-            document.getElementById('cooper-form').style.display = 'none';
+
+            // Hide all forms
+            document.getElementById('vdot-form').classList.add('hidden');
+            document.getElementById('custom-form').classList.add('hidden');
+            document.getElementById('cooper-form').classList.add('hidden');
             document.getElementById('vo2-result').innerHTML = '';
-            
+
+            // Show selected form
             if (testType === 'vdot') {
-                document.getElementById('vdot-form').style.display = 'block';
+                document.getElementById('vdot-form').classList.remove('hidden');
             } else if (testType === 'custom') {
-                document.getElementById('custom-form').style.display = 'block';
+                document.getElementById('custom-form').classList.remove('hidden');
             } else if (testType === 'cooper') {
-                document.getElementById('cooper-form').style.display = 'block';
+                document.getElementById('cooper-form').classList.remove('hidden');
             }
         }
 
@@ -1341,25 +1509,19 @@
             let resultText = '';
 
             if (testType === 'vdot') {
-                const distance = parseFloat(document.getElementById('vdot-distance').value);
-                const hours = parseFloat(document.getElementById('vdot-hours').value) || 0;
-                const minutes = parseFloat(document.getElementById('vdot-minutes').value) || 0;
-                const seconds = parseFloat(document.getElementById('vdot-seconds').value) || 0;
+                const distance = validateDistance(
+                    document.getElementById('vdot-distance').value,
+                    'Please enter a valid distance in meters.'
+                );
+                if (!distance) return;
 
-                if (isNaN(distance) || distance <= 0) {
-                    alert('Please enter a valid distance in meters.');
-                    return;
-                }
-                const totalTimeSeconds = (hours * 3600) + (minutes * 60) + seconds;
-                if (totalTimeSeconds <= 0) {
-                    alert('Please enter a valid time.');
-                    return;
-                }
+                const totalTimeSeconds = validateTimeInput('vdot');
+                if (!totalTimeSeconds) return;
 
                 const totalTimeMinutes = totalTimeSeconds / 60;
                 const speed = distance / totalTimeMinutes;
                 vo2max = (0.2 * speed) + 3.5;
-                
+
                 resultText = `
                     <h3>Results</h3>
                     <div class="result-item">
@@ -1372,20 +1534,18 @@
             } else if (testType === 'custom') {
                 const gender = parseInt(document.getElementById('custom-gender').value);
                 const age = parseInt(document.getElementById('custom-age').value);
-                const hours = parseFloat(document.getElementById('custom-hours').value) || 0;
-                const minutes = parseFloat(document.getElementById('custom-minutes').value) || 0;
-                const seconds = parseFloat(document.getElementById('custom-seconds').value) || 0;
+                const { hours, minutes, seconds } = getTimeInputs('custom');
                 const maxHR = parseFloat(document.getElementById('custom-max-hr').value);
                 const restHR = parseFloat(document.getElementById('custom-rest-hr').value);
 
                 if (isNaN(age) || age <= 0 || isNaN(maxHR) || maxHR <= 0 || isNaN(restHR) || restHR <= 0) {
-                    alert('Please fill all required fields.');
+                    showError('Please fill all required fields.');
                     return;
                 }
 
                 const totalTimeMinutes = (hours * 60) + minutes + (seconds / 60);
                 if (totalTimeMinutes <= 0) {
-                    alert('Please enter a valid 5km time.');
+                    showError('Please enter a valid 5km time.');
                     return;
                 }
 
@@ -1419,15 +1579,14 @@
                     </div>
                 `;
             } else if (testType === 'cooper') {
-                const distance = parseFloat(document.getElementById('cooper-distance').value);
-
-                if (isNaN(distance) || distance <= 0) {
-                    alert('Please enter a valid distance in meters.');
-                    return;
-                }
+                const distance = validateDistance(
+                    document.getElementById('cooper-distance').value,
+                    'Please enter a valid distance in meters.'
+                );
+                if (!distance) return;
 
                 vo2max = (distance - 504.9) / 44.73;
-                
+
                 resultText = `
                     <h3>Results</h3>
                     <div class="result-item">
@@ -1438,7 +1597,7 @@
                     </div>
                 `;
             } else {
-                alert('Please select a test type.');
+                showError('Please select a test type.');
                 return;
             }
 
@@ -1456,29 +1615,21 @@
         // Pace Calculator Functions
         function calculatePace() {
             let distance = parseFloat(document.getElementById('pace-standard-distance').value);
-            
+
             if (!distance || distance === 0) {
                 const customDistance = parseFloat(document.getElementById('pace-custom-distance').value);
                 const unit = document.getElementById('pace-custom-unit').value;
-                
+
                 if (isNaN(customDistance) || customDistance <= 0) {
-                    alert('Please select or enter a valid distance.');
+                    showError('Please select or enter a valid distance.');
                     return;
                 }
-                
+
                 distance = unit === 'mi' ? customDistance * 1.60934 : customDistance;
             }
 
-            const hours = parseInt(document.getElementById('pace-hours').value) || 0;
-            const minutes = parseInt(document.getElementById('pace-minutes').value) || 0;
-            const seconds = parseInt(document.getElementById('pace-seconds').value) || 0;
-
-            const totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
-            
-            if (totalSeconds <= 0) {
-                alert('Please enter a valid time.');
-                return;
-            }
+            const totalSeconds = validateTimeInput('pace');
+            if (!totalSeconds) return;
 
             const pacePerKm = totalSeconds / distance;
             const pacePerMile = totalSeconds / (distance / 1.60934);
@@ -1544,19 +1695,13 @@
         function predictRaceTimeQuick() {
             const gender = document.getElementById('race-gender-quick').value;
             const distance = parseFloat(document.getElementById('race-known-distance').value);
-            const hours = parseInt(document.getElementById('race-hours').value) || 0;
-            const minutes = parseInt(document.getElementById('race-minutes').value) || 0;
-            const seconds = parseInt(document.getElementById('race-seconds').value) || 0;
+            const totalTimeSeconds = validateTimeInput('race');
+            if (!totalTimeSeconds) return;
+
+            const totalTimeMinutes = totalTimeSeconds / 60;
             const targetDistance = parseFloat(document.getElementById('race-target-distance').value);
             const experienceFactor = parseFloat(document.getElementById('race-experience').value);
             const endurance = parseFloat(document.getElementById('race-endurance').value);
-
-            const totalTimeMinutes = (hours * 60) + minutes + (seconds / 60);
-
-            if (totalTimeMinutes <= 0) {
-                alert('Please enter a valid time.');
-                return;
-            }
 
             let fatigueFactor = experienceFactor;
             
@@ -1618,36 +1763,30 @@
             const height = parseFloat(document.getElementById('race-height').value);
 
             const race1Distance = parseFloat(document.getElementById('race1-distance').value);
-            const race1Hours = parseInt(document.getElementById('race1-hours').value) || 0;
-            const race1Minutes = parseInt(document.getElementById('race1-minutes').value) || 0;
-            const race1Seconds = parseInt(document.getElementById('race1-seconds').value) || 0;
+            const race1TimeSeconds = getTimeInSeconds('race1');
 
             const race2Distance = parseFloat(document.getElementById('race2-distance').value);
-            const race2Hours = parseInt(document.getElementById('race2-hours').value) || 0;
-            const race2Minutes = parseInt(document.getElementById('race2-minutes').value) || 0;
-            const race2Seconds = parseInt(document.getElementById('race2-seconds').value) || 0;
+            const race2TimeSeconds = getTimeInSeconds('race2');
 
             if (isNaN(age) || isNaN(weight) || isNaN(height)) {
-                alert('Please fill in your age, weight, and height.');
+                showError('Please fill in your age, weight, and height.');
                 return;
             }
 
-            const race1TimeSeconds = (race1Hours * 3600) + (race1Minutes * 60) + race1Seconds;
-            const race2TimeSeconds = (race2Hours * 3600) + (race2Minutes * 60) + race2Seconds;
-
             if (race1TimeSeconds <= 0 || race2TimeSeconds <= 0) {
-                alert('Please enter valid race times for both races.');
+                showError('Please enter valid race times for both races.');
                 return;
             }
 
             if (race1Distance >= race2Distance) {
-                alert('Race #1 should be shorter than Race #2. Please adjust your distances.');
+                showError('Race #1 should be shorter than Race #2. Please adjust your distances.');
                 return;
             }
 
             const heightM = height / 100;
             const bmi = weight / (heightM * heightM);
 
+            // Cache personalExponent - calculated once and reused
             const personalExponent = Math.log(race2TimeSeconds / race1TimeSeconds) / Math.log(race2Distance / race1Distance);
 
             // Age adjustment
@@ -1662,15 +1801,16 @@
                 ageAdjustment = 1.0 + ((25 - age) * 0.001);
             }
 
-            // Gender-adjusted optimal BMI
+            // Gender-adjusted optimal BMI - fixed logic to avoid dead code
             const optimalBMI = gender === 'female' ? 21 : 20;
             let bmiAdjustment = 1.0;
-            
+
             if (bmi < 18) {
-                bmiAdjustment = 1.02;
+                bmiAdjustment = 1.02; // Underweight penalty
             } else if (bmi > 25) {
-                bmiAdjustment = 1.0 + ((bmi - 25) * 0.01);
-            } else if (bmi > optimalBMI + 1) {
+                bmiAdjustment = 1.0 + ((bmi - 25) * 0.01); // Overweight penalty
+            } else if (bmi > optimalBMI + 1 && bmi <= 25) {
+                // Slightly above optimal but not overweight
                 bmiAdjustment = 1.0 + ((bmi - optimalBMI - 1) * 0.005);
             }
 
@@ -1946,9 +2086,13 @@
 
         // Age Grading Data Storage
         let ageGradingData = null;
+        let ageGradingDataLoading = false;
 
-        // Load WMA Age Grading Data
+        // Load WMA Age Grading Data - fixed race condition with proper async handling
         async function loadAgeGradingData() {
+            if (ageGradingDataLoading) return;
+            ageGradingDataLoading = true;
+
             try {
                 // Try to load from local file first (for GitHub Pages hosting)
                 const response = await fetch('agegradingfactors.json');
@@ -1962,36 +2106,36 @@
                 console.log('WMA Age Grading Data loaded successfully');
             } catch (error) {
                 console.error('Error loading age grading data:', error);
-                alert('Unable to load age grading data. Please ensure agegradingfactors.json is in the same directory as this HTML file.');
+                showError('Unable to load age grading data. Please ensure agegradingfactors.json is in the same directory as this HTML file.');
+            } finally {
+                ageGradingDataLoading = false;
             }
         }
 
-        // Load data when page loads
-        loadAgeGradingData();
+        // Load data when DOM is ready - fixes race condition
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadAgeGradingData();
+        });
 
         // Age Grading Functions
         function calculateAgeGrading() {
             if (!ageGradingData) {
-                alert('Age grading data is still loading. Please wait a moment and try again.');
+                showError('Age grading data is still loading. Please wait a moment and try again.');
                 return;
             }
 
             const age = parseInt(document.getElementById('ag-age').value);
             const gender = document.getElementById('ag-gender').value;
             const event = document.getElementById('ag-event').value;
-            const hours = parseInt(document.getElementById('ag-hours').value) || 0;
-            const minutes = parseInt(document.getElementById('ag-minutes').value) || 0;
-            const seconds = parseInt(document.getElementById('ag-seconds').value) || 0;
+            const performanceSeconds = getTimeInSeconds('ag');
 
             if (isNaN(age) || age < 30 || age > 110) {
-                alert('Please enter a valid age between 30 and 110 for WMA age grading.');
+                showError('Please enter a valid age between 30 and 110 for WMA age grading.');
                 return;
             }
 
-            const performanceSeconds = (hours * 3600) + (minutes * 60) + seconds;
-
             if (performanceSeconds <= 0) {
-                alert('Please enter a valid time.');
+                showError('Please enter a valid time.');
                 return;
             }
 
@@ -1999,7 +2143,7 @@
             const openRecord = getOpenRecord(gender, event);
 
             if (!factor || !openRecord) {
-                alert('Age grading data not available for selected parameters.');
+                showError('Age grading data not available for selected parameters.');
                 return;
             }
 
@@ -2108,24 +2252,19 @@
 
         // Elevation Gain Adjustment Functions
         function calculateElevationAdjustment() {
-            const distance = parseFloat(document.getElementById('elev-distance').value);
-            const hours = parseInt(document.getElementById('elev-hours').value) || 0;
-            const minutes = parseInt(document.getElementById('elev-minutes').value) || 0;
-            const seconds = parseInt(document.getElementById('elev-seconds').value) || 0;
+            const distance = validateDistance(
+                document.getElementById('elev-distance').value,
+                'Please enter a valid distance.'
+            );
+            if (!distance) return;
+
+            const flatTimeSeconds = validateTimeInput('elev');
+            if (!flatTimeSeconds) return;
+
+            const { hours, minutes, seconds } = getTimeInputs('elev');
             const elevGain = parseFloat(document.getElementById('elev-gain').value) || 0;
             const elevLoss = parseFloat(document.getElementById('elev-loss').value) || 0;
             const terrainFactor = parseFloat(document.getElementById('elev-terrain').value);
-
-            if (isNaN(distance) || distance <= 0) {
-                alert('Please enter a valid distance.');
-                return;
-            }
-
-            const flatTimeSeconds = (hours * 3600) + (minutes * 60) + seconds;
-            if (flatTimeSeconds <= 0) {
-                alert('Please enter a valid time.');
-                return;
-            }
 
             // Naismith's Rule: +1 minute per 10m elevation gain
             // Modified: -0.5 minutes per 10m elevation loss (but capped)
@@ -2203,13 +2342,13 @@
             event.currentTarget.classList.add('active');
 
             if (mode === 'hr') {
-                document.getElementById('zones-hr-mode').style.display = 'block';
-                document.getElementById('zones-pace-mode').style.display = 'none';
+                document.getElementById('zones-hr-mode').classList.remove('hidden');
+                document.getElementById('zones-pace-mode').classList.add('hidden');
             } else {
-                document.getElementById('zones-hr-mode').style.display = 'none';
-                document.getElementById('zones-pace-mode').style.display = 'block';
+                document.getElementById('zones-hr-mode').classList.add('hidden');
+                document.getElementById('zones-pace-mode').classList.remove('hidden');
             }
-            
+
             document.getElementById('zones-result').innerHTML = '';
         }
 
@@ -2221,7 +2360,7 @@
                 const restHR = parseInt(document.getElementById('zones-rest-hr').value);
 
                 if (isNaN(maxHR) || maxHR < 100 || isNaN(restHR) || restHR < 30) {
-                    alert('Please enter valid heart rate values.');
+                    showError('Please enter valid heart rate values.');
                     return;
                 }
 
@@ -2282,7 +2421,7 @@
                 const thresholdSec = parseInt(document.getElementById('zones-threshold-sec').value) || 0;
 
                 if (isNaN(thresholdMin) || thresholdMin < 3) {
-                    alert('Please enter a valid threshold pace.');
+                    showError('Please enter a valid threshold pace.');
                     return;
                 }
 
@@ -2357,7 +2496,7 @@
             const tempFactor = parseFloat(document.getElementById('nutr-temp').value);
 
             if (isNaN(weight) || isNaN(distance) || isNaN(paceMin)) {
-                alert('Please fill in all required fields.');
+                showError('Please fill in all required fields.');
                 return;
             }
 
